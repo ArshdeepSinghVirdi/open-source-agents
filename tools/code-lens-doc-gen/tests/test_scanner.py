@@ -44,7 +44,7 @@ class TestConfig:
         assert len(errors) == 1
 
     def test_validate_real_api_key(self):
-        config = Config(gemini_api_key="AIzaSy-some-real-key")
+        config = Config(gemini_api_key="mock-valid-api-key-for-testing")
         errors = validate_config(config)
         assert len(errors) == 0
 

@@ -94,25 +94,36 @@ class Config:
     })
 
 
+PLACEHOLDER_API_KEY = "your_gemini_api_key_here"
+
+
 def load_config(env_path: str = None) -> Config:
     """
     Load configuration from .env file and environment variables.
 
-    Args:
-        env_path: Optional explicit path to .env file.
-                  If None, searches for .env in the current directory.
-
-    Returns:
-        Config object with all settings populated.
+    Searches for .env in:
+    1. Explicit env_path (if provided)
+    2. Current working directory
+    3. Tool package root directory
     """
-    if env_path:
+    if env_path and Path(env_path).exists():
         load_dotenv(dotenv_path=env_path)
     else:
-        load_dotenv()
+        # Check current working directory
+        cwd_env = Path.cwd() / ".env"
+        # Check tool root directory
+        tool_env = Path(__file__).resolve().parent.parent / ".env"
+
+        if cwd_env.exists():
+            load_dotenv(dotenv_path=cwd_env)
+        elif tool_env.exists():
+            load_dotenv(dotenv_path=tool_env)
+        else:
+            load_dotenv()
 
     config = Config(
         gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
-        gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+        gemini_model=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
         output_dir=os.getenv("OUTPUT_DIR", "./docs_output"),
         log_level=os.getenv("LOG_LEVEL", "INFO"),
         max_file_size=int(os.getenv("MAX_FILE_SIZE", "524288")),
@@ -128,7 +139,7 @@ def validate_config(config: Config) -> list[str]:
     """
     errors = []
 
-    if not config.gemini_api_key or config.gemini_api_key == "your_gemini_api_key_here":
+    if not config.gemini_api_key or config.gemini_api_key == PLACEHOLDER_API_KEY:
         errors.append(
             "GEMINI_API_KEY is not set. "
             "Get your free API key from: https://aistudio.google.com/apikey "
