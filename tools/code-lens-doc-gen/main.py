@@ -273,6 +273,54 @@ def update(path, output, base, head, env_file):
 
 
 # =============================================================================
+# SERVE Command (Documentation UI)
+# =============================================================================
+
+@cli.command()
+@click.option("--dir", "-d", default=None, help="Directory containing generated docs (default: ./docs_output).")
+@click.option("--port", "-p", default=8000, help="Port to serve on (default: 8000).")
+@click.option("--open-browser/--no-open", default=True, help="Automatically open browser.")
+def serve(dir, port, open_browser):
+    """Launch an interactive web UI to view the generated documentation."""
+    import http.server
+    import socketserver
+    import webbrowser
+    import os
+
+    config = load_config()
+    target_dir = Path(dir or config.output_dir).resolve()
+
+    if not target_dir.exists() or not (target_dir / "index.html").exists():
+        console.print(f"[red]Error:[/red] Documentation not found in '{target_dir}'.")
+        console.print("[dim]Run 'python main.py generate .' first to generate documentation.[/dim]")
+        sys.exit(1)
+
+    console.print(Panel(
+        f"[bold green]Starting Documentation Web Server[/bold green]\n\n"
+        f"🌐 URL: [cyan]http://localhost:{port}[/cyan]\n"
+        f"📁 Serving: [dim]{target_dir}[/dim]\n\n"
+        f"Press [bold]Ctrl+C[/bold] to stop the server.",
+        title="📖 CodeLens Docs UI",
+        border_style="green",
+    ))
+
+    os.chdir(target_dir)
+
+    class CustomHandler(http.server.SimpleHTTPRequestHandler):
+        def log_message(self, format, *args):
+            pass  # Keep terminal clean
+
+    if open_browser:
+        webbrowser.open(f"http://localhost:{port}")
+
+    with socketserver.TCPServer(("", port), CustomHandler) as httpd:
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Documentation server stopped.[/yellow]")
+
+
+# =============================================================================
 # Helper Functions
 # =============================================================================
 

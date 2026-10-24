@@ -169,6 +169,15 @@ python main.py update . --base HEAD~5 --head HEAD
 python main.py update . --output ./my-docs --base main --head feature-branch
 ```
 
+### View Documentation in Interactive Web UI
+```bash
+# Launch the built-in web portal (opens http://localhost:8000 automatically)
+python main.py serve
+
+# Specify custom port or directory
+python main.py serve --port 3000 --dir ./my-docs
+```
+
 ---
 
 ## Example Input & Output
